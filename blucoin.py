@@ -75,13 +75,14 @@ class Block:
 
 
 class Transaction:
-    def __init__(self, sender, recipient, amount) -> None:
+    def __init__(self, sender, recipient, amount, signature=None) -> None:
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
+        self.signature = signature
 
     def __str__(self) -> str:
-        return f"TX: ({self.amount} Blu FROM sender: {self.sender.to_string()} -> recipient: {self.recipient.to_string()})"
+        return f"TX: ({self.amount} Blu FROM sender: {self.sender.to_der().hex()} -> recipient: {self.recipient.to_der().hex()}), SIGNATURE: {self.signature}"
 
 
 class Wallet:
@@ -97,11 +98,13 @@ class Wallet:
         # 2 - Sign the transaction
         # 3 - Add to pool of pending transactions
         tx = Transaction(self.pubkey, recipient, amount)
+        signature = self.sign(tx)
+        tx.signature = signature
         blockchain.pending_transactions.append(tx)
 
     def sign(self, transaction):
         # In this case, the "message" is the bytes of our transaction
-        signature = self.privkey.sign(bytes(str(transaction)))
+        signature = self.privkey.sign(str(transaction).encode())
         return signature
 
     def verify(self, signature, transaction):
