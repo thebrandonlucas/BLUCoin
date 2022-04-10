@@ -1,5 +1,8 @@
-from blucoin import *
 import unittest
+
+from blucoin.src.blockchain import Blockchain
+from blucoin.src.node import Node
+from blucoin.src.wallet import Wallet
 
 
 def generate_transactions():
