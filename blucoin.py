@@ -1,29 +1,3 @@
-# Create a blockchain.
-# A blockchain is a collection of records organized into chunks called blocks
-# that are linked together using cryptography.
-
-# A blockchain contains:
-#  1 - A cryptographic hash of the previous block
-#  2 - A timestamp
-#  3 - Transaction data (in the form of a Merkle Tree)
-
-# The usefulness of blockchains comes from:
-# 1 - Publicly distributed ledger known to everyone
-# 2 - Highly tamper resistant, changing one block makes all the subsequent blocks invalid
-
-# Layers of blockchain:
-# 1 - infrastructure (hardware)
-# 2 - Networking (node discovery, information propagation, verification)
-# 3 - Consensus (Proof of Work)
-# 4 - data (Blocks & Transactions)
-# 5 - Application (Smart Contracts)
-
-# Mining and Consensus/Proof of work
-
-# Mining is the process of looking for a valid "proof" of a miner discovering
-# a number below the "target", which is a SHA256 number with a certain number of 0's prepended
-# interpreted in little endian
-
 from time import time
 from hashlib import sha256
 from ecdsa import SigningKey, SECP256k1
@@ -52,7 +26,7 @@ class Blockchain:
         if len(self.chain):
             return self.chain[-1]
         # Genesis block?
-        return Block()
+        return self.create_genesis_block()
 
     def add_block(self, block, node):
         # Check the block hash for proof of work
@@ -108,6 +82,16 @@ class Node:
             hash = block.hash()
         return nonce
 
+    def get_reward(self, pubkey, message):
+        coinbase_tx = Transaction(
+            pubkey, pubkey, self.blockchain.block_reward
+        )
+        # In place of a signature for a mined block, the miner can put some
+        # arbitrary data
+        coinbase_tx.signature = message
+        # append the coinbase transactions to
+        # self.blockchain.pending_transactions.append(coinbase_tx)
+
 
 class Transaction:
     def __init__(
@@ -142,6 +126,13 @@ class Wallet:
         # 1 - Create a transaction
         # 2 - Sign the transaction
         # 3 - Add to pool of pending transactions
+        verified_balance = self.verified_balance()
+        if verified_balance < amount:
+            print(
+                f"Transaction failed, {self.nickname} attempted to send {amount} BLU but only had {verified_balance}"
+            )
+            return
+
         tx = Transaction(self.pubkey, recipient, amount)
         tx.signature = self.sign(tx)
         self.blockchain.pending_transactions.append(tx)
@@ -152,9 +143,6 @@ class Wallet:
 
     def verify(self, signature, transaction):
         return self.pubkey.verify(signature, str(transaction).encode())
-
-    # def get_reward(self):
-
 
     def unverified_balance(self):
         # Unverified balance are the unverified transactions in pending_transactions

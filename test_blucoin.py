@@ -35,7 +35,7 @@ class TestBlockchain(unittest.TestCase):
         )
         node = Node(blockchain)
         # miner_wallet = Wallet(blockchain=blockchain, node=node)
-        proof = node.mine(block)
+        node.mine(block)
         blockchain.add_block(block, node)
 
         self.assertEqual(len(blockchain.chain), 1)
