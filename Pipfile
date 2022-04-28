@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 ecdsa = "*"
+flask = "*"
+jsonpickle = "*"
 
 [dev-packages]
 

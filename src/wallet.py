@@ -1,5 +1,6 @@
 from ecdsa import SigningKey, SECP256k1
 from transaction import Transaction
+from helper import compress
 
 
 class Wallet:
@@ -66,15 +67,8 @@ class Wallet:
 
     def add_peer_nickname(self, verifying_key, peer_nickname):
         # Change ECDSA library type "VerifyingKey" to DER string
-        peer_pubkey = self.der(verifying_key)
+        peer_pubkey = self.compress(verifying_key)
         self.peer_nicknames[peer_pubkey] = peer_nickname
-
-    # FIXME: no longer using der format, rename
-    def der(self, pubkey):
-        """
-        Convert pubkey to hex string in der format
-        """
-        return pubkey.to_string().hex()
 
     def get_mempool_txns(self):
         """
@@ -112,9 +106,9 @@ class Wallet:
         """
         txns_string = ""
         for tx in txns:
-            user_pubkey_hex = self.der(self.pubkey)
-            sender_hex = self.der(tx.sender)
-            recipient_hex = self.der(tx.recipient)
+            user_pubkey_hex = compress(self.pubkey)
+            sender_hex = compress(tx.sender)
+            recipient_hex = compress(tx.recipient)
 
             tx_string = "\t- "
             if tx.sender == self.pubkey:

@@ -1,5 +1,9 @@
 from time import time
 from hashlib import sha256
+
+from transaction import Transaction
+
+
 class Block:
     def __init__(
         self,
@@ -25,3 +29,31 @@ class Block:
             [self.previous_hash, self.timestamp, self.transactions, self.nonce]
         ).encode()
         return sha256(block_data).hexdigest()
+
+    def json_serialize(self):
+        coinbase_tx = self.transactions["coinbase"].json_serialize(coinbase=True)
+        regular_txs = [tx.json_serialize() for tx in self.transactions["regular"]]
+        return {
+            "previous_hash": self.previous_hash,
+            "timestamp": self.timestamp,
+            "transactions": {"coinbase": coinbase_tx, "regular": regular_txs},
+            "proof": self.nonce,
+        }
+
+    @staticmethod
+    def json_deserialize(json_block):
+        previous_hash = json_block["previous_hash"]
+        timestamp = json_block["timestamp"]
+        coinbase_tx = Transaction.json_deserialize(
+            json_block["transactions"]["coinbase"]
+        )
+        regular_txs = [
+            Transaction.json_deserialize(tx)
+            for tx in json_block["transactions"]["regular"]
+        ]
+        transactions = {
+            "coinbase": coinbase_tx,
+            "regular": regular_txs,
+        }
+        proof = json_block["proof"]
+        return Block(previous_hash, timestamp, transactions, proof)

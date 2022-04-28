@@ -1,8 +1,16 @@
 import unittest
+import sys, os
 
-from blucoin.src.blockchain import Blockchain
-from blucoin.src.node import Node
-from blucoin.src.wallet import Wallet
+
+
+# Get relative path to blockchain files
+script_dir = os.path.dirname(__file__)
+module_dir = os.path.join(script_dir, "..", "src")
+sys.path.append(module_dir)
+
+from blockchain import Blockchain
+from wallet import Wallet
+from node import Node
 
 
 def generate_transactions():
@@ -17,31 +25,35 @@ def generate_transactions():
     brandon_node.set_blockreward_pubkey(brandon_wallet.pubkey)
     brandon_node.mine()
 
-    print('brandon wallet BLU: ', brandon_wallet.verified_balance())
+    print("brandon wallet BLU: ", brandon_wallet.verified_balance())
 
     laura_wallet = Wallet(blockchain, nickname="laura")
 
     brandon_wallet.send(laura_wallet.pubkey, 50)
 
-    print('brandon wallet verified after sending: ', brandon_wallet.verified_balance())
-    print('brandon wallet unverified after sending: ', brandon_wallet.unverified_balance())
-    print('brandon wallet total after sending ', brandon_wallet.balance())
+    print("brandon wallet verified after sending: ", brandon_wallet.verified_balance())
+    print(
+        "brandon wallet unverified after sending: ", brandon_wallet.unverified_balance()
+    )
+    print("brandon wallet total after sending ", brandon_wallet.balance())
 
-    print('laura wallet verified after receiving ', laura_wallet.verified_balance())
-    print('laura wallet unverified after receiving ', laura_wallet.unverified_balance())
-    print('laura wallet total after receiving ', laura_wallet.balance())
+    print("laura wallet verified after receiving ", laura_wallet.verified_balance())
+    print("laura wallet unverified after receiving ", laura_wallet.unverified_balance())
+    print("laura wallet total after receiving ", laura_wallet.balance())
 
     brandon_node.mine()
 
-    print('brandon wallet verified after mining: ', brandon_wallet.verified_balance())
-    print('brandon wallet unverified after mining: ', brandon_wallet.unverified_balance())
-    print('brandon wallet total after mining ', brandon_wallet.balance())
+    print("brandon wallet verified after mining: ", brandon_wallet.verified_balance())
+    print(
+        "brandon wallet unverified after mining: ", brandon_wallet.unverified_balance()
+    )
+    print("brandon wallet total after mining ", brandon_wallet.balance())
 
-    print('laura wallet verified after mining ', laura_wallet.verified_balance())
-    print('laura wallet unverified after mining ', laura_wallet.unverified_balance())
-    print('laura wallet total after mining ', laura_wallet.balance())
+    print("laura wallet verified after mining ", laura_wallet.verified_balance())
+    print("laura wallet unverified after mining ", laura_wallet.unverified_balance())
+    print("laura wallet total after mining ", laura_wallet.balance())
     # print('brandon wallet verified after mining')
- 
+
     # brandon_wallet = Wallet(blockchain)
     # laura_wallet = Wallet(blockchain)
     # tom_wallet = Wallet(blockchain)
@@ -56,139 +68,81 @@ def generate_transactions():
     # tom_wallet.send(brandon_wallet.pubkey, 24)
 
     return blockchain
-
+    
 
 class TestBlockchain(unittest.TestCase):
-    def test_node(self):
-        blockchain = generate_transactions()
-        # print(blockchain)
+    def test_mining_creates_coinbase_tx(self):
+        blockchain = Blockchain()
 
-    # def test_init(self):
-    #     blockchain = Blockchain()
-    #     self.assertEqual(blockchain.chain, [])
-    #     self.assertEqual(blockchain.pending_transactions, [])
+        brandon_node = Node(blockchain)
+        brandon_wallet = Wallet(
+            blockchain,
+            nickname="brandon",
+        )
+        brandon_node.add_account(brandon_wallet)
+        brandon_node.set_blockreward_pubkey(brandon_wallet.pubkey)
+        brandon_node.mine() 
 
-    # def test_add_block(self):
-    #     blockchain = generate_transactions()
+        coinbase_tx = blockchain.chain[0].transactions['coinbase']
+        self.assertEqual(coinbase_tx.amount, 50)
 
-    #     block = Block(
-    #         previous_hash=blockchain.get_latest_block().hash(),
-    #         transactions=blockchain.pending_transactions,
-    #     )
-    #     node = Node(blockchain)
-    #     # miner_wallet = Wallet(blockchain=blockchain, node=node)
-    #     node.mine(block)
-    #     blockchain.add_block(block, node)
+    def test_miner_receives_reward(self):
+        blockchain = Blockchain()
 
-    #     self.assertEqual(len(blockchain.chain), 1)
-    #     self.assertEqual(blockchain.pending_transactions, [])
-    #     self.assertEqual(blockchain.chain[0].hash(), block.hash())
-    #     self.assertEqual(node.reward, 50)
+        brandon_node = Node(blockchain)
+        brandon_wallet = Wallet(
+            blockchain,
+            nickname="brandon",
+        )
+        brandon_node.add_account(brandon_wallet)
+        brandon_node.set_blockreward_pubkey(brandon_wallet.pubkey)
+        brandon_node.mine()
 
-
-# class TestBlock(unittest.TestCase):
-#     # def test_hash(self):
-#     #     blockchain = Blockchain()
-#     #     blockchain.add_block()
-#     #     blockchain.add_block()
-
-#     #     previous_hash_last_block = blockchain.get_latest_block().previous_hash
-#     #     hash_of_first_block = blockchain.chain[0].hash()
-#     #     self.assertEqual(previous_hash_last_block, hash_of_first_block)
-#     # def test_hash(self):
-#     # block = Block()
-#     pass
+        # 50 is block reward for mining
+        self.assertEqual(brandon_wallet.verified_balance(), 50)
 
 
-# class TestNode(unittest.TestCase):
-#     def test_mine(self):
-#         blockchain = Blockchain()
-#         brandon_wallet = Wallet(blockchain)
-#         laura_wallet = Wallet(blockchain)
-#         tom_wallet = Wallet(blockchain)
+    def test_send_blucoin_pending_tx(self):
+        blockchain = Blockchain()
 
-#         brandon_wallet.set_nickname("Brandon")
-#         brandon_wallet.add_peer_nickname(laura_wallet.pubkey, "Laura")
-#         brandon_wallet.add_peer_nickname(tom_wallet.pubkey, "Tom")
+        brandon_node = Node(blockchain)
+        laura_wallet = Wallet(blockchain)
 
-#         brandon_wallet.send(laura_wallet.pubkey, 123)
-#         laura_wallet.send(brandon_wallet.pubkey, 33)
-#         brandon_wallet.send(tom_wallet.pubkey, 12)
-#         tom_wallet.send(brandon_wallet.pubkey, 24)
+        brandon_wallet = Wallet(blockchain, nickname="brandon")
+        brandon_node.add_account(brandon_wallet)
+        # TODO: set blockreward pubkey by default when adding account
+        # set_blockreward_pubkey should just be used to change the pubkey
+        brandon_node.set_blockreward_pubkey(brandon_wallet.pubkey)
+        brandon_node.mine()
 
-#         block = Block(transactions=blockchain.pending_transactions)
+        brandon_wallet.send(laura_wallet.pubkey, 25)
 
-#         node = Node(blockchain)
-#         proof = node.mine(block)
-
-#         # Test that the proof correctly hashes
-#         block_data = str(
-#             [block.previous_hash, block.timestamp, block.transactions, proof]
-#         ).encode()
-#         self.assertEqual(sha256(block_data).hexdigest(), block.hash())
-
-#         # Test that the hash is below the difficulty
-#         self.assertLessEqual(
-#             block.hash()[: blockchain.difficulty], "0" * blockchain.difficulty
-#         )
+        self.assertEqual(laura_wallet.unverified_balance(), 25)
+        self.assertEqual(laura_wallet.balance(), 25)
+        self.assertEqual(laura_wallet.verified_balance(), 0)
 
 
-# class TestWallet(unittest.TestCase):
-#     def test_send(self):
-#         blockchain = Blockchain()
-#         my_wallet = Wallet(blockchain)
-#         peer_wallet = Wallet(blockchain)
-#         my_wallet.send(peer_wallet.pubkey, 10)
+    def test_send_blucoin_validated_tx(self):
+        blockchain = Blockchain()
 
-#         self.assertEqual(peer_wallet.balance(), 10)
+        brandon_node = Node(blockchain)
+        laura_wallet = Wallet(blockchain)
 
-#     def test_verify(self):
-#         blockchain = Blockchain()
-#         my_wallet = Wallet(blockchain)
-#         peer_wallet = Wallet(blockchain)
-#         my_wallet.send(peer_wallet.pubkey, 10)
-#         tx = blockchain.pending_transactions[0]
+        brandon_wallet = Wallet(blockchain, nickname="brandon")
+        brandon_node.add_account(brandon_wallet)
+        # TODO: set blockreward pubkey by default when adding account
+        # set_blockreward_pubkey should just be used to change the pubkey
+        brandon_node.set_blockreward_pubkey(brandon_wallet.pubkey)
+        brandon_node.mine()
 
-#         self.assertEqual(my_wallet.verify(tx.signature, tx), True)
+        brandon_wallet.send(laura_wallet.pubkey, 25)
 
-#     def test_unverified_balance_empty(self):
-#         blockchain = Blockchain()
-#         my_wallet = Wallet(blockchain)
-#         self.assertEqual(my_wallet.unverified_balance(), 0)
+        # Validate the transaction by mining
+        brandon_node.mine()
 
-#     def test_unverified_balance_not_empty(self):
-#         blockchain = Blockchain()
-#         my_wallet = Wallet(blockchain)
-#         peer_wallet = Wallet(blockchain)
-#         my_wallet.send(peer_wallet.pubkey, 10)
-
-#         self.assertEqual(peer_wallet.unverified_balance(), 10)
-
-#     def test_add_peer_nickname(self):
-#         my_wallet = Wallet()
-#         peer_wallet = Wallet()
-#         my_wallet.add_peer_nickname(peer_wallet.pubkey, "Laura")
-
-#         peer_pubkey_der = peer_wallet.pubkey.to_string().hex()
-#         self.assertEqual(my_wallet.peer_nicknames[peer_pubkey_der], "Laura")
-
-#     def test_show_txns(self):
-#         blockchain = Blockchain()
-#         brandon_wallet = Wallet(blockchain)
-#         laura_wallet = Wallet(blockchain)
-#         tom_wallet = Wallet(blockchain)
-
-#         brandon_wallet.set_nickname("Brandon")
-#         brandon_wallet.add_peer_nickname(laura_wallet.pubkey, "Laura")
-#         brandon_wallet.add_peer_nickname(tom_wallet.pubkey, "Tom")
-
-#         brandon_wallet.send(laura_wallet.pubkey, 123)
-#         laura_wallet.send(brandon_wallet.pubkey, 33)
-#         brandon_wallet.send(tom_wallet.pubkey, 12)
-#         tom_wallet.send(brandon_wallet.pubkey, 24)
-
-#         txns = brandon_wallet.get_all_txns()
-#         brandon_wallet.show_txns(txns)
+        self.assertEqual(laura_wallet.unverified_balance(), 0)
+        self.assertEqual(laura_wallet.balance(), 25)
+        self.assertEqual(laura_wallet.verified_balance(), 25)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import random
 from block import Block
 from transaction import Transaction
+from helper import compress
 
 
 class Node:
@@ -14,7 +15,7 @@ class Node:
         """
         Mine a block by finding creating the block, finding a proof-of-work for it,
         and adding it to the chain.
-
+        :returns: <object> block
         """
         if not self.pubkey:
             print(
@@ -23,16 +24,16 @@ class Node:
             return
         # Create the Genesis block if the chain is empty
         if len(self.blockchain.chain) == 0:
-            self.mine_block(
+            return self.mine_block(
                 previous_hash=None,
                 message="Chancellor on brink of second bailout for banks",
             )
-            return
+            
 
         # If the chain is not empty, create normal block
         previous_hash = self.blockchain.get_latest_block().hash()
         pending_transactions = self.blockchain.pending_transactions
-        self.mine_block(previous_hash, pending_transactions, message)
+        return self.mine_block(previous_hash, pending_transactions, message)
 
     def mine_block(self, previous_hash=None, pending_transactions=[], message=""):
         block = Block(
@@ -45,6 +46,7 @@ class Node:
         block.transactions["coinbase"] = coinbase_tx
         self.proof_of_work(block)
         self.blockchain.add_block(block, self)
+        return block
 
     def proof_of_work(self, block) -> int:
         """
@@ -73,7 +75,7 @@ class Node:
         if wallet.nickname:
             self.accounts[wallet.nickname] = wallet
         else:
-            self.accounts[wallet.pubkey.der()] = wallet
+            self.accounts[compress(wallet.pubkey)] = wallet
 
     def set_blockreward_pubkey(self, pubkey):
         self.pubkey = pubkey

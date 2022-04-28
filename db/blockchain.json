@@ -1,0 +1,16 @@
+[
+    {
+        "previous_hash": null,
+        "timestamp": 1651149059.205122,
+        "transactions": {
+            "coinbase": {
+                "sender": "9d929830fda77da082d90627b91778416eef9f65b034aa36e1cf97f4529897057550b5ea1fae08d36b12ebdeace56c93212670fca555d4833e912a021a671fc5",
+                "recipient": "9d929830fda77da082d90627b91778416eef9f65b034aa36e1cf97f4529897057550b5ea1fae08d36b12ebdeace56c93212670fca555d4833e912a021a671fc5",
+                "amount": 50,
+                "signature": "Chancellor on brink of second bailout for banks"
+            },
+            "regular": []
+        },
+        "proof": 3492372324645
+    }
+]
