@@ -2,7 +2,8 @@ import json
 from time import time
 from hashlib import sha256
 
-from blockchain.transaction import Transaction
+
+from transaction import Transaction
 
 
 class Block:

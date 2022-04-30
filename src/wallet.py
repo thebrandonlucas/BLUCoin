@@ -1,6 +1,14 @@
 from ecdsa import SigningKey, SECP256k1
-from blockchain.transaction import Transaction
-from server.server_helper import compress
+
+import sys, os
+
+# Get relative path to blockchain files
+script_dir = os.path.dirname(__file__)
+module_dir = os.path.join(script_dir, "..", "src")
+sys.path.append(module_dir)
+
+from transaction import Transaction
+from server_helper import compress
 
 
 class Wallet:

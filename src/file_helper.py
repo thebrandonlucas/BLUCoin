@@ -1,8 +1,12 @@
 import json
-import os
-from blockchain.blockchain import Blockchain
-from blockchain.block import Block
+import sys, os
 
+# Get relative path to blockchain files
+script_dir = os.path.dirname(__file__)
+module_dir = os.path.join(script_dir, "..", "src")
+sys.path.append(module_dir)
+
+from blockchain import Blockchain
 
 def read_blockchain() -> object:
     """

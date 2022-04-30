@@ -1,6 +1,6 @@
-from blockchain.node import Node
-from blockchain.block import Block
-from server.server_helper import compress
+from node import Node
+from block import Block
+from server_helper import compress
 import requests
 import json
 

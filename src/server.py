@@ -1,13 +1,17 @@
 from flask import Flask, jsonify, request
 from uuid import uuid4
-from blockchain.blockchain import Blockchain
-from blockchain.node import Node
-from wallet.wallet import Wallet
-from blockchain.transaction import Transaction
-from blockchain.block import Block
-from server.server_helper import get_port
-from server.file_helper import read_blockchain, write_blockchain, read_nodes, write_nodes
-from wallet.wallet_helper import read_wallet, write_wallet
+
+import sys, os
+
+# Get relative path to blockchain files
+script_dir = os.path.dirname(__file__)
+module_dir = os.path.join(script_dir, "..", "src/blockchain")
+sys.path.append(module_dir)
+
+from node import Node
+from server_helper import get_port
+from file_helper import read_blockchain, write_blockchain
+from wallet_helper import read_wallet, write_wallet
 
 app = Flask(__name__)
 
@@ -47,9 +51,6 @@ def full_chain():
 
 @app.route("/consensus", methods=["GET"])
 def consensus():
-    """
-    Function to reach consensus using the longest valid chain rule
-    """
     new_chain = blockchain.consensus()
     if new_chain:
         response = {
@@ -64,6 +65,7 @@ def consensus():
         }
 
     return jsonify(response), 200
+
 
 # TODO: list nodes
 

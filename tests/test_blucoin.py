@@ -7,10 +7,10 @@ script_dir = os.path.dirname(__file__)
 module_dir = os.path.join(script_dir, "..", "src")
 sys.path.append(module_dir)
 
-from blockchain.blockchain import Blockchain
-from wallet.wallet import Wallet
-from blockchain.node import Node
-from blockchain.block import Block
+from blockchain import Blockchain
+from wallet import Wallet
+from node import Node
+from block import Block
 
 class TestBlockchain(unittest.TestCase):
     def test_mining_creates_coinbase_tx(self):
