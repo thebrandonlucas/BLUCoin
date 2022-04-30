@@ -1,7 +1,7 @@
 import json
 import os
-from blockchain import Blockchain
-from block import Block
+from blockchain.blockchain import Blockchain
+from blockchain.block import Block
 
 
 def read_blockchain() -> object:

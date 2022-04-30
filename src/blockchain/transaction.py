@@ -1,5 +1,5 @@
 from ecdsa import SECP256k1, VerifyingKey
-from helper import compress
+from server.server_helper import compress
 import json
 
 

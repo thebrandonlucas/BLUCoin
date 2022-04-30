@@ -1,6 +1,6 @@
 import os
 from ecdsa import SigningKey
-from wallet import Wallet
+from wallet.wallet import Wallet
 
 def write_wallet(privkey, nickname=None) -> str:
     """

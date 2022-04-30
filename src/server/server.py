@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request
 from uuid import uuid4
-from blockchain import Blockchain
-from node import Node
-from wallet import Wallet
-from transaction import Transaction
-from block import Block
-from helper import compress, get_port
-from file_helper import read_blockchain, write_blockchain, read_nodes, write_nodes
-from wallet_helper import read_wallet, write_wallet
+from blockchain.blockchain import Blockchain
+from blockchain.node import Node
+from wallet.wallet import Wallet
+from blockchain.transaction import Transaction
+from blockchain.block import Block
+from server.server_helper import get_port
+from server.file_helper import read_blockchain, write_blockchain, read_nodes, write_nodes
+from wallet.wallet_helper import read_wallet, write_wallet
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ blockchain = read_blockchain()
 node = Node(blockchain)
 
 wallet = read_wallet(blockchain)
-write_wallet(wallet.privkey, "brandon")
+write_wallet(wallet.privkey, "Brandon LUcas")
 
 node.add_account(wallet)
 node.set_blockreward_pubkey(wallet.pubkey)
@@ -26,8 +26,6 @@ node.set_blockreward_pubkey(wallet.pubkey)
 
 @app.route("/mine", methods=["GET"])
 def mine():
-    # Can't mine until we are saving node/wallet data
-
     block = node.mine()
 
     write_blockchain(blockchain.json_serialize())
@@ -58,6 +56,7 @@ def consensus():
             "new_chain": True,
             "message": "Longer valid chain found in neighbor. Updated local chain.",
         }
+        write_blockchain(new_chain)
     else:
         response = {
             "new_chain": False,

@@ -1,6 +1,6 @@
 from ecdsa import SigningKey, SECP256k1
-from transaction import Transaction
-from helper import compress
+from blockchain.transaction import Transaction
+from server.server_helper import compress
 
 
 class Wallet:

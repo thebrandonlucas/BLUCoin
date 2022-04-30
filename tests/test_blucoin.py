@@ -7,10 +7,10 @@ script_dir = os.path.dirname(__file__)
 module_dir = os.path.join(script_dir, "..", "src")
 sys.path.append(module_dir)
 
-from blockchain import Blockchain
-from wallet import Wallet
-from node import Node
-from block import Block
+from blockchain.blockchain import Blockchain
+from wallet.wallet import Wallet
+from blockchain.node import Node
+from blockchain.block import Block
 
 class TestBlockchain(unittest.TestCase):
     def test_mining_creates_coinbase_tx(self):
@@ -164,6 +164,12 @@ class TestBlockchain(unittest.TestCase):
             blockchain.chain[0].hash(),
             Blockchain.json_deserialize(serialized_chain).chain[0].hash(),
         )
+
+    def test_register_peers(self):
+        blockchain = Blockchain()
+        blockchain.register_peers(["localhost:5009"])
+
+        self.assertEqual(blockchain.peers, set(["localhost:5009"]))
 
 if __name__ == "__main__":
     unittest.main()

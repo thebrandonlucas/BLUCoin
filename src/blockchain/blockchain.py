@@ -1,6 +1,6 @@
-from node import Node
-from block import Block
-from helper import compress
+from blockchain.node import Node
+from blockchain.block import Block
+from server.server_helper import compress
 import requests
 import json
 
@@ -12,8 +12,7 @@ class Blockchain:
         # The number of prepended zeroes to the 256 bit target number
         self.difficulty = 4
         self.block_reward = 50
-        # TODO: convert peers to set() for uniqueness
-        self.peers = []
+        self.peers = set()
 
     def __str__(self):
         return json.dumps(self.json_serialize())
@@ -39,8 +38,9 @@ class Blockchain:
         """
         Register a neighboring node to compare their blockchains
         """
+        # Convert to set() from list so we don't add duplicate peers
         for peer in peers:
-            self.peers.append(peer)
+            self.peers.add(peer)
 
     def valid_chain(self, chain):
         """
@@ -51,27 +51,15 @@ class Blockchain:
         prev_block = None
         for block in chain:
 
-            # Genesis
+            # Check if current block is Genesis
             if block.previous_hash == None:
                 # Can't have two Genesis blocks!
                 if prev_block:
                     return False
                 prev_block = block
                 continue
-            # print("PREV BLOCK JSON", prev_block.json_serialize())
-            # print("PREV BLOCK HASH", prev_block.hash())
-            # print("CUR BLOCK JSON", block.json_serialize())
-            # print("CUR BLOCK HASH", block.hash())
             
             if block.previous_hash != prev_block.hash():
-                # print("AFTER CHECKED HASH")
-                # # What's changing must be occurring when I serialize it
-                # print(
-                #     "Returning from unequal previous hash and previous block's hash",
-                #     block.previous_hash,
-                #     prev_block.hash(),
-                # )
-
                 return False
             if not block.valid_proof(self.difficulty):
                 return False
@@ -88,18 +76,14 @@ class Blockchain:
         else False
         """
         current_chain = self.chain
-        print("CURRENT CHAIN", self)
         for node in self.peers:
-            # print("NODE", node)
             # Request the neighbor's blockchain
             response = requests.get(f"http://{node}/chain")
             if response.status_code == 200:
                 neighbor_chain = Blockchain.json_deserialize(response.json()).chain
-
                 if self.valid_chain(neighbor_chain) and len(neighbor_chain) > len(
                     current_chain
                 ):
-                    # print("NEIGHBOR CHAIN GREATER")
                     current_chain = neighbor_chain
 
         # Return True if new chain added
@@ -119,11 +103,9 @@ class Blockchain:
             "peers": self.peers,
         }
 
-    # TODO: serialize/deserialize peers
     @staticmethod
     def json_deserialize(json_blockchain, json_peers=None):
-        # self.peers = [Node().json_deserialize(peer) for peer in json_peers]
         blockchain = Blockchain()
-        # print("JSON BLOCKCHAIN", json_blockchain)
         blockchain.chain = [Block.json_deserialize(block) for block in json_blockchain["chain"]]
+        blockchain.peers = set(json_blockchain["peers"])
         return blockchain

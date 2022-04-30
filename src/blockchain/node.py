@@ -1,7 +1,7 @@
 import random
-from block import Block
-from transaction import Transaction
-from helper import compress
+from blockchain.block import Block
+from blockchain.transaction import Transaction
+from server.server_helper import compress
 
 
 class Node:
