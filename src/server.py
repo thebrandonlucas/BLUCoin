@@ -1,3 +1,4 @@
+from ecdsa import VerifyingKey, SECP256k1
 from flask import Flask, jsonify, request
 from uuid import uuid4
 
@@ -9,7 +10,7 @@ module_dir = os.path.join(script_dir, "..", "src/blockchain")
 sys.path.append(module_dir)
 
 from node import Node
-from server_helper import get_port
+from server_helper import get_port, compress
 from file_helper import read_blockchain, write_blockchain
 from wallet_helper import read_wallet, write_wallet
 
@@ -68,12 +69,20 @@ def consensus():
 
 
 # TODO: list nodes
+@app.route("/peers/list")
+def list_peers():
+    """
+    List all the peers saved by the current node
+    """
+    response = {"peers": list(blockchain.peers)}
+    return jsonify(response), 200
+
 
 # FIXME: what to do if requested peer offline (when asking for it's chain)?
-@app.route("/nodes/register", methods=["POST"])
+@app.route("/peers/register", methods=["POST"])
 def register_peer():
     values = request.get_json()
-    peers = values["nodes"]
+    peers = values["peers"]
     blockchain.register_peers(peers)
     response = {
         "message": f"Successfully added {len(peers)} peers",
@@ -82,7 +91,67 @@ def register_peer():
     return jsonify(response), 201
 
 
+@app.route("/wallet/pubkey", methods=["GET"])
+def get_pubkey():
+    """
+    Show the pubkey for the wallet associated with this node
+    """
+    response = {
+        "pubkey": compress(wallet.pubkey),
+        "nickname": wallet.nickname if wallet.nickname else "No Nickname Set",
+    }
+    return jsonify(response), 200
+
+
 # Add wallet send() method to send money to peers
+@app.route("/wallet/send", methods=["POST"])
+def send():
+    """
+    request:
+    {
+        "recipient_pubkey": "0x324...",
+        "amount": 20
+    }
+    """
+    values = request.get_json()
+    recipient_pubkey = VerifyingKey.from_string(
+        bytearray.fromhex(values["recipient_pubkey"]), curve=SECP256k1
+    )
+    amount = values["amount"]
+    wallet.send(recipient_pubkey, amount)
+    
+    response = {
+        "message": f"Sent {amount} BLU to {values['recipient_pubkey']}"
+    }
+    return jsonify(response), 201
+    # TODO: send wallet to mempools of other miners? (Instead of just ours)
+
+
+# Add wallet balance(), unverified_balance(), verified_balance()
+@app.route("/wallet/balance", methods=["GET"])
+def balance():
+    """
+    Check the balance of a wallet
+    """
+    response = {
+        "wallet": wallet.nickname if wallet.nickname else compress(wallet.pubkey),
+        "total_balance": wallet.balance()
+    }
+    return jsonify(response), 200
+
+@app.route("/mempool", methods=["GET"])
+def mempool():
+    """
+    Get the pending_transactions (mempool) for the local blockchain
+    """
+    response = {
+        "pending_transactions": blockchain.pending_transactions
+    }
+    return jsonify(response), 200
+
+# @app.route("/wallet/verified_balance")
+
+# @app.route("/wallet/unverified_balance")
 
 if __name__ == "__main__":
     port = get_port()

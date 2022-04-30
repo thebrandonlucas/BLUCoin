@@ -100,7 +100,7 @@ class Blockchain:
             "pending_transactions": pending_transactions,
             "difficulty": self.difficulty,
             "block_reward": self.block_reward,
-            "peers": self.peers,
+            "peers": list(self.peers),
         }
 
     @staticmethod

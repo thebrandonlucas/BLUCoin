@@ -1,5 +1,6 @@
 from ecdsa import SECP256k1, VerifyingKey
 import json
+from server_helper import compress
 
 
 class Transaction:
@@ -27,8 +28,8 @@ class Transaction:
             else self.signature.hex()
         )
         return {
-            "sender": self.sender.to_string().hex(),
-            "recipient": self.recipient.to_string().hex(),
+            "sender": compress(self.sender),
+            "recipient": compress(self.recipient),
             "amount": self.amount,
             "signature": signature,
         }
