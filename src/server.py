@@ -118,13 +118,13 @@ def send():
         bytearray.fromhex(values["recipient_pubkey"]), curve=SECP256k1
     )
     amount = values["amount"]
+    # TODO: broadcast tx to other mempools of other miners (Instead of just ours)
     wallet.send(recipient_pubkey, amount)
     
     response = {
         "message": f"Sent {amount} BLU to {values['recipient_pubkey']}"
     }
     return jsonify(response), 201
-    # TODO: send wallet to mempools of other miners? (Instead of just ours)
 
 
 # Add wallet balance(), unverified_balance(), verified_balance()

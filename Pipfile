@@ -8,6 +8,7 @@ ecdsa = "*"
 flask = "*"
 jsonpickle = "*"
 requests = "*"
+flask-restplus = "*"
 
 [dev-packages]
 
