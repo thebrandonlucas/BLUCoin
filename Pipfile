@@ -7,6 +7,7 @@ name = "pypi"
 ecdsa = "*"
 flask = "*"
 jsonpickle = "*"
+requests = "*"
 
 [dev-packages]
 

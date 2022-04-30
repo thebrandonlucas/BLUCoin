@@ -26,11 +26,26 @@ class Wallet:
         self.blockchain.pending_transactions.append(tx)
 
     def sign(self, transaction):
-        # In this case, the "message" is the bytes of our transaction
-        return self.privkey.sign(str(transaction).encode())
+        # In this case, the "message" is the bytes of our transaction (minus the empty sig)
+        tx_encoded = str(
+            {
+                "sender": transaction.sender,
+                "recipient": transaction.recipient,
+                "amount": transaction.amount,
+            }
+        ).encode()
+        return self.privkey.sign(tx_encoded)
 
     def verify(self, signature, transaction):
-        return self.pubkey.verify(signature, str(transaction).encode())
+        # Since "signature" was empty during tx signing, we don't include it for verifying
+        tx_encoded = str(
+            {
+                "sender": transaction.sender,
+                "recipient": transaction.recipient,
+                "amount": transaction.amount,
+            }
+        ).encode()
+        return self.pubkey.verify(signature, tx_encoded)
 
     def unverified_balance(self):
         # Unverified balance are the unverified transactions in pending_transactions

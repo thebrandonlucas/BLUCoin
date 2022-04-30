@@ -5,14 +5,8 @@ from node import Node
 from wallet import Wallet
 from transaction import Transaction
 from block import Block
-from helper import (
-    read_blockchain,
-    write_blockchain,
-    read_nodes,
-    write_nodes,
-    get_port,
-    compress,
-)
+from helper import compress, get_port
+from file_helper import read_blockchain, write_blockchain, read_nodes, write_nodes
 from wallet_helper import read_wallet, write_wallet
 
 app = Flask(__name__)
@@ -20,20 +14,15 @@ app = Flask(__name__)
 node_identifier = uuid4()
 
 # Initialize the blockchain from DB file (or create new one)
-blockchain = Blockchain()
-blockchain.chain = read_blockchain()
-blockchain.peers = read_nodes()
-
-# TODO: load/write wallet to DB
+blockchain = read_blockchain()
 node = Node(blockchain)
 
 wallet = read_wallet(blockchain)
-
-# write wallet if not saved already
 write_wallet(wallet.privkey, "brandon")
 
 node.add_account(wallet)
 node.set_blockreward_pubkey(wallet.pubkey)
+
 
 @app.route("/mine", methods=["GET"])
 def mine():
@@ -41,32 +30,10 @@ def mine():
 
     block = node.mine()
 
-    write_blockchain(blockchain.json_serialize()["chain"])
-
-    # height = blockchain.get_height(block.hash())
-
-    # Deserialize transactions to return as JSON from API
-    # txs = block.transactions
-    # coinbase_tx = {
-    #     "sender": txs["coinbase"].sender.to_string().hex(),
-    #     "recipient": txs["coinbase"].recipient.to_string().hex(),
-    #     "amount": txs["coinbase"].amount,
-    #     "signature": txs["coinbase"].signature,
-    # }
-
-    # regular_txs = [
-    #     {
-    #         "sender": tx.sender.to_string().hex(),
-    #         "recipient": tx.recipient.to_string.hex(),
-    #         "amount": tx.amount,
-    #         "signature": tx.signature.to_string().hex(),
-    #     }
-    #     for tx in txs["regular"]
-    # ]
+    write_blockchain(blockchain.json_serialize())
 
     response = {
         "message": "New Block Mined!",
-        # "height": height,
         "hash": block.hash(),
         # Unpack the remaining attributes of block (timestamp, previous_hash, proof, transactions)
         **block.json_serialize(),
@@ -75,24 +42,46 @@ def mine():
     return jsonify(response), 201
 
 
-# @app.route("/transactions/send")
 @app.route("/chain", methods=["GET"])
 def full_chain():
-    response = {
-        "blockchain": blockchain.json_serialize()["chain"],
-        "mempool": blockchain.pending_transactions,
-        "difficulty": blockchain.difficulty,
-        "block_reward": blockchain.block_reward,
-    }
-
-    return jsonify(response), 200
+    return jsonify(blockchain.json_serialize()), 200
 
 
-@app.route("/consensus")
+@app.route("/consensus", methods=["GET"])
 def consensus():
     """
     Function to reach consensus using the longest valid chain rule
     """
+    new_chain = blockchain.consensus()
+    if new_chain:
+        response = {
+            "new_chain": True,
+            "message": "Longer valid chain found in neighbor. Updated local chain.",
+        }
+    else:
+        response = {
+            "new_chain": False,
+            "message": "Local chain was longest valid chain among peers. No updates made.",
+        }
+
+    return jsonify(response), 200
+
+# TODO: list nodes
+
+# FIXME: what to do if requested peer offline (when asking for it's chain)?
+@app.route("/nodes/register", methods=["POST"])
+def register_peer():
+    values = request.get_json()
+    peers = values["nodes"]
+    blockchain.register_peers(peers)
+    response = {
+        "message": f"Successfully added {len(peers)} peers",
+        "new_peers": peers,
+    }
+    return jsonify(response), 201
+
+
+# Add wallet send() method to send money to peers
 
 if __name__ == "__main__":
     port = get_port()

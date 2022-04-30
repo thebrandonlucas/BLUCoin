@@ -1,5 +1,6 @@
 from ecdsa import SECP256k1, VerifyingKey
 from helper import compress
+import json
 
 
 class Transaction:
@@ -8,7 +9,7 @@ class Transaction:
         sender,
         recipient,
         amount,
-        signature=None,
+        signature="",
     ) -> None:
         self.sender = sender
         self.recipient = recipient
@@ -16,10 +17,16 @@ class Transaction:
         self.signature = signature
 
     def __str__(self) -> str:
-        return f"TX: ({self.amount} Blu FROM sender: {compress(self.sender)} -> recipient: {compress(self.recipient)})"
+        return json.dumps(self.json_serialize())
 
-    def json_serialize(self, coinbase=False):
-        signature = self.signature if coinbase else self.signature.to_string().hex()
+    def json_serialize(self):
+        # A coinbase transaction will have a signature of type "str"
+        # A regular transaction will have a signature of type "bytes"?
+        signature = (
+            self.signature
+            if isinstance(self.signature, str)
+            else self.signature.hex()
+        )
         return {
             "sender": self.sender.to_string().hex(),
             "recipient": self.recipient.to_string().hex(),
@@ -29,9 +36,15 @@ class Transaction:
 
     @staticmethod
     def json_deserialize(json_transaction):
+        # TODO: what to do about transaction signatures that are not coinbase? Do we need
+        # to do from_string for sigs too?
         sender, recipient, amount, signature = (
-            json_transaction["sender"],
-            json_transaction["recipient"],
+            VerifyingKey.from_string(
+                bytearray.fromhex(json_transaction["sender"]), curve=SECP256k1
+            ),
+            VerifyingKey.from_string(
+                bytearray.fromhex(json_transaction["recipient"]), curve=SECP256k1
+            ),
             json_transaction["amount"],
             json_transaction["signature"],
         )

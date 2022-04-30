@@ -1,3 +1,4 @@
+import json
 from time import time
 from hashlib import sha256
 
@@ -9,29 +10,33 @@ class Block:
         self,
         previous_hash=None,
         timestamp=time(),
-        transactions=[],
+        transactions={"coinbase": None, "regular": []},
         nonce=0,
     ) -> None:
         self.previous_hash = previous_hash
         self.timestamp = timestamp
-        self.transactions = {"coinbase": None, "regular": transactions}
+        self.transactions = transactions
         self.nonce = nonce
 
     def __str__(self) -> str:
-        result = "Block:\n"
-        result += f"\n\tCoinbase Transaction:\n\t\t{str(self.transactions['coinbase'])}"
-        for i, tx in enumerate(self.transactions["regular"]):
-            result += f"\n\tTransaction {i}:\n\t\t{str(tx)}"
-        return result
+        return json.dumps(self.json_serialize())
 
     def hash(self):
-        block_data = str(
-            [self.previous_hash, self.timestamp, self.transactions, self.nonce]
-        ).encode()
+        block_data = json.dumps(self.json_serialize()).encode()
         return sha256(block_data).hexdigest()
 
+    def valid_proof(self, difficulty):
+        """
+        Determine whether a proof used in PoW is a valid difficulty
+        """
+        return self.hash()[:difficulty] == "0" * difficulty
+
     def json_serialize(self):
-        coinbase_tx = self.transactions["coinbase"].json_serialize(coinbase=True)
+        coinbase_tx = (
+            self.transactions["coinbase"].json_serialize()
+            if self.transactions["coinbase"]
+            else None
+        )
         regular_txs = [tx.json_serialize() for tx in self.transactions["regular"]]
         return {
             "previous_hash": self.previous_hash,
@@ -56,4 +61,5 @@ class Block:
             "regular": regular_txs,
         }
         proof = json_block["proof"]
-        return Block(previous_hash, timestamp, transactions, proof)
+        block = Block(previous_hash, timestamp, transactions, proof)
+        return block

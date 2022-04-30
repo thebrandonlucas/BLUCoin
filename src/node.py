@@ -13,7 +13,7 @@ class Node:
 
     def mine(self, message=""):
         """
-        Mine a block by finding creating the block, finding a proof-of-work for it,
+        Mine a block by creating the block, finding a proof-of-work for it,
         and adding it to the chain.
         :returns: <object> block
         """
@@ -28,7 +28,6 @@ class Node:
                 previous_hash=None,
                 message="Chancellor on brink of second bailout for banks",
             )
-            
 
         # If the chain is not empty, create normal block
         previous_hash = self.blockchain.get_latest_block().hash()
@@ -36,14 +35,13 @@ class Node:
         return self.mine_block(previous_hash, pending_transactions, message)
 
     def mine_block(self, previous_hash=None, pending_transactions=[], message=""):
-        block = Block(
-            previous_hash=previous_hash,
-            transactions=pending_transactions,
-        )
         coinbase_tx = Transaction(
             self.pubkey, self.pubkey, self.blockchain.block_reward, signature=message
         )
-        block.transactions["coinbase"] = coinbase_tx
+        block = Block(
+            previous_hash=previous_hash,
+            transactions={"coinbase": coinbase_tx, "regular": pending_transactions},
+        )
         self.proof_of_work(block)
         self.blockchain.add_block(block, self)
         return block

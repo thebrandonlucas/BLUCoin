@@ -1,16 +1,64 @@
-[
-    {
-        "previous_hash": null,
-        "timestamp": 1651149059.205122,
-        "transactions": {
-            "coinbase": {
-                "sender": "9d929830fda77da082d90627b91778416eef9f65b034aa36e1cf97f4529897057550b5ea1fae08d36b12ebdeace56c93212670fca555d4833e912a021a671fc5",
-                "recipient": "9d929830fda77da082d90627b91778416eef9f65b034aa36e1cf97f4529897057550b5ea1fae08d36b12ebdeace56c93212670fca555d4833e912a021a671fc5",
-                "amount": 50,
-                "signature": "Chancellor on brink of second bailout for banks"
+{
+    "chain": [
+        {
+            "previous_hash": null,
+            "timestamp": 1651332150.572355,
+            "transactions": {
+                "coinbase": {
+                    "sender": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "recipient": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "amount": 50,
+                    "signature": "Chancellor on brink of second bailout for banks"
+                },
+                "regular": []
             },
-            "regular": []
+            "proof": 283097595858
         },
-        "proof": 3492372324645
-    }
-]
+        {
+            "previous_hash": "00009c236a338b7a8c96eef3f81f6a95091636786a5b4cc8586f3df273ea54d5",
+            "timestamp": 1651332150.572355,
+            "transactions": {
+                "coinbase": {
+                    "sender": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "recipient": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "amount": 50,
+                    "signature": ""
+                },
+                "regular": []
+            },
+            "proof": 6170913205232
+        },
+        {
+            "previous_hash": "00003889e124b0a82af996be444af91196369c81fa5d84fd96169c7a84588f8a",
+            "timestamp": 1651332150.572355,
+            "transactions": {
+                "coinbase": {
+                    "sender": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "recipient": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "amount": 50,
+                    "signature": ""
+                },
+                "regular": []
+            },
+            "proof": 5223881867695
+        },
+        {
+            "previous_hash": "0000ec37e0fc0fc1b3d5d6a523d7d6ecf827efdfdcdcd275b8e021eefc05db4b",
+            "timestamp": 1651332150.572355,
+            "transactions": {
+                "coinbase": {
+                    "sender": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "recipient": "4fc5707fc7bf498d8e0d115531b869141fec807f08374d8dd4de16b3eff706749ce18d421168b0d41f3d3ba9773de50e299bef0e2123eb0a9334ea9c5fe3a7f4",
+                    "amount": 50,
+                    "signature": ""
+                },
+                "regular": []
+            },
+            "proof": 892769919895
+        }
+    ],
+    "pending_transactions": [],
+    "difficulty": 4,
+    "block_reward": 50,
+    "peers": []
+}

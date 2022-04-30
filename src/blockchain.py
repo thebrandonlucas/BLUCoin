@@ -1,6 +1,8 @@
 from node import Node
 from block import Block
 from helper import compress
+import requests
+import json
 
 
 class Blockchain:
@@ -10,17 +12,11 @@ class Blockchain:
         # The number of prepended zeroes to the 256 bit target number
         self.difficulty = 4
         self.block_reward = 50
+        # TODO: convert peers to set() for uniqueness
         self.peers = []
 
     def __str__(self):
-        result = f"Blucoin Blockchain:\n\tDifficulty: {self.difficulty}"
-        result += "\n\tPending Transactions:\n"
-        for i, tx in enumerate(self.pending_transactions):
-            result += f"\n\t\t- Transaction {i}:\n\t\t\t{str(tx)}"
-        result += "\n\tBlocks:\n"
-        for i, block in enumerate(self.chain):
-            result += f"{i} {str(block)}"
-        return result
+        return json.dumps(self.json_serialize())
 
     def get_latest_block(self):
         if len(self.chain):
@@ -29,7 +25,7 @@ class Blockchain:
 
     def add_block(self, block, node):
         # Check the block hash for proof of work
-        if block.hash()[: self.difficulty] <= "0" * self.difficulty:
+        if block.hash()[: self.difficulty] >= "0" * self.difficulty:
             self.chain.append(block)
             self.pending_transactions = []
             print(f"Block {block.hash()} added!")
@@ -39,11 +35,78 @@ class Blockchain:
                 f"Block {block.hash()} rejected. Does not satisfy difficulty {self.difficulty}"
             )
 
-    # def get_block_height(hash):
-    #     """
-    #     Gets a block's height by iterating through the blockchain and
-    #     returning the index of the block with the matching hash
-    #     """
+    def register_peers(self, peers):
+        """
+        Register a neighboring node to compare their blockchains
+        """
+        for peer in peers:
+            self.peers.append(peer)
+
+    def valid_chain(self, chain):
+        """
+        Determines whether the given chain is valid by checking:
+            1) If the hash of a block is the previous hash of the next block (i.e. are they linked?)
+            2) If the proof used in each block is a valid difficulty
+        """
+        prev_block = None
+        for block in chain:
+
+            # Genesis
+            if block.previous_hash == None:
+                # Can't have two Genesis blocks!
+                if prev_block:
+                    return False
+                prev_block = block
+                continue
+            # print("PREV BLOCK JSON", prev_block.json_serialize())
+            # print("PREV BLOCK HASH", prev_block.hash())
+            # print("CUR BLOCK JSON", block.json_serialize())
+            # print("CUR BLOCK HASH", block.hash())
+            
+            if block.previous_hash != prev_block.hash():
+                # print("AFTER CHECKED HASH")
+                # # What's changing must be occurring when I serialize it
+                # print(
+                #     "Returning from unequal previous hash and previous block's hash",
+                #     block.previous_hash,
+                #     prev_block.hash(),
+                # )
+
+                return False
+            if not block.valid_proof(self.difficulty):
+                return False
+
+            prev_block = block
+        return True
+
+    def consensus(self):
+        """
+        The consensus algorithm that compares our chain to our neighbors and gets
+        the one with the longest valid proof-of-work
+
+        Returns True if new chain added,
+        else False
+        """
+        current_chain = self.chain
+        print("CURRENT CHAIN", self)
+        for node in self.peers:
+            # print("NODE", node)
+            # Request the neighbor's blockchain
+            response = requests.get(f"http://{node}/chain")
+            if response.status_code == 200:
+                neighbor_chain = Blockchain.json_deserialize(response.json()).chain
+
+                if self.valid_chain(neighbor_chain) and len(neighbor_chain) > len(
+                    current_chain
+                ):
+                    # print("NEIGHBOR CHAIN GREATER")
+                    current_chain = neighbor_chain
+
+        # Return True if new chain added
+        if self.chain != current_chain:
+            self.chain = current_chain
+            return True
+        return False
 
     def json_serialize(self):
         chain = [block.json_serialize() for block in self.chain]
@@ -57,7 +120,10 @@ class Blockchain:
         }
 
     # TODO: serialize/deserialize peers
-    def json_deserialize(self, json_chain, json_peers=None):
-        self.chain = [Block().json_deserialize(block) for block in json_chain]
+    @staticmethod
+    def json_deserialize(json_blockchain, json_peers=None):
         # self.peers = [Node().json_deserialize(peer) for peer in json_peers]
-        
+        blockchain = Blockchain()
+        # print("JSON BLOCKCHAIN", json_blockchain)
+        blockchain.chain = [Block.json_deserialize(block) for block in json_blockchain["chain"]]
+        return blockchain
