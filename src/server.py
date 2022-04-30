@@ -13,6 +13,7 @@ from node import Node
 from server_helper import get_port, compress
 from file_helper import read_blockchain, write_blockchain
 from wallet_helper import read_wallet, write_wallet
+from transaction import Transaction
 
 app = Flask(__name__)
 
@@ -68,7 +69,6 @@ def consensus():
     return jsonify(response), 200
 
 
-# TODO: list nodes
 @app.route("/peers/list")
 def list_peers():
     """
@@ -119,11 +119,12 @@ def send():
     )
     amount = values["amount"]
     # TODO: broadcast tx to other mempools of other miners (Instead of just ours)
-    wallet.send(recipient_pubkey, amount)
-    
-    response = {
-        "message": f"Sent {amount} BLU to {values['recipient_pubkey']}"
-    }
+    if wallet.send(recipient_pubkey, amount) is True:
+        response = {"message": f"Sent {amount} BLU to {values['recipient_pubkey']}"}
+    else:
+        response = {
+            "message": f"{compress(wallet.pubkey)} attempted to send {amount} but only had {wallet.verified_balance()} verified"
+        }
     return jsonify(response), 201
 
 
@@ -135,7 +136,29 @@ def balance():
     """
     response = {
         "wallet": wallet.nickname if wallet.nickname else compress(wallet.pubkey),
-        "total_balance": wallet.balance()
+        "total_balance": wallet.balance(),
+    }
+    return jsonify(response), 200
+
+@app.route("/wallet/balance/unverified", methods=["GET"])
+def unverified_balance():
+    """
+    Get balance of a wallet that's sitting in the mempool
+    """
+    response = {
+        "wallet": wallet.nickname if wallet.nickname else compress(wallet.pubkey),
+        "unverified_balance": wallet.unverified_balance(),
+    }
+    return jsonify(response), 200
+
+@app.route("/wallet/balance/verified", methods=["GET"])
+def verified_balance():
+    """
+    Get balance of a wallet that's confirmed on the blockchain
+    """
+    response = {
+        "wallet": wallet.nickname if wallet.nickname else compress(wallet.pubkey),
+        "verified_balance": wallet.verified_balance(),
     }
     return jsonify(response), 200
 
@@ -144,10 +167,12 @@ def mempool():
     """
     Get the pending_transactions (mempool) for the local blockchain
     """
-    response = {
-        "pending_transactions": blockchain.pending_transactions
-    }
+    pending_transactions = [
+        tx.json_serialize() for tx in blockchain.pending_transactions
+    ]
+    response = {"pending_transactions": pending_transactions}
     return jsonify(response), 200
+
 
 # @app.route("/wallet/verified_balance")
 

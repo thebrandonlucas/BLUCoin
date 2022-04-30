@@ -27,11 +27,12 @@ class Wallet:
             print(
                 f"Transaction failed, {self.nickname} attempted to send {amount} BLU but only had {verified_balance}"
             )
-            return
+            return False
 
         tx = Transaction(self.pubkey, recipient, amount)
         tx.signature = self.sign(tx)
         self.blockchain.pending_transactions.append(tx)
+        return True
 
     def sign(self, transaction):
         # In this case, the "message" is the bytes of our transaction (minus the empty sig)

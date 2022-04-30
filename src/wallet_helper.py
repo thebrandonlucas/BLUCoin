@@ -7,10 +7,10 @@ def write_wallet(privkey, nickname=None) -> str:
     Converts a pubkey to a PEM string for saving to file
     """
     print(os.getcwd())
-    if not os.path.isfile("../wallet/privkey.pem"):
+    if not os.path.isfile("wallet/privkey.pem"):
         with open("wallet/privkey.pem", "wb") as f:
             f.write(privkey.to_pem())
-    if nickname and not os.path.isfile("../wallet/nickname.db"):
+    if nickname and not os.path.isfile("wallet/nickname.db"):
         with open("wallet/nickname.db", "w") as f:
             f.write(nickname)
 
