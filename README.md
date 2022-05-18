@@ -6,7 +6,7 @@ A minimal custom blockchain implementation to test my knowledge. Theory is great
 
 Not a real coin!
 
-Special thanks to [Preston Evans](https://prestonevans.net/) for his [blockchain implementation](https://github.com/preston-evans98/blockchain) and for showing me the crypto world in the first place.
+Special thanks to [Preston Evans](https://prestonevans.net/) for his [blockchain implementation](https://github.com/preston-evans98/blockchain) and for showing me the Bitcoin world in the first place.
 
 And to [Daniel van Flymen](https://dvf.nyc/) for [this article](https://hackernoon.com/learn-blockchains-by-building-one-117428612f46) showing how to use an API for consensus between nodes.
 
